@@ -35,10 +35,6 @@ function makeMetaData(selectedID){
 // let selectedID = 940;
 function init(){
 // Get JSON data and log to console
-// let data = dataPromise.then(function(data) {
-//   console.log(data.names);
-//   console.log(data.samples);
-// });
 //----------------------------- link IDS to dropdonw
 
   // // Use D3 to select the dropdown menu
@@ -50,7 +46,7 @@ function init(){
       dropdownMenu.append("option").attr("value", ID).text(ID);
     })
     let initialID = PatientIDs[0];
-    // makePlots(initialID);
+    makePlots(initialID);
     makeMetaData(initialID);
 
   })
@@ -59,49 +55,122 @@ function init(){
 
 function optionChanged(selectedID) {
   makeMetaData(selectedID);
-  // MakePlots(selectedID);
+  makePlots(selectedID);
 
 }
 
 
 
 //---------bar chart
+function makePlots(selectedID) {
+  d3.json(url).then((data)=>{
 
-// d3.json(url).then((data)=>{
+    d3.select("#bar").append("div").attr("class", "panel");
+    d3.select("#bubble").append("div").attr("class", "panel");
+    d3.select("#bar").attr("class", "panel-body");
+    d3.select("#bubble").attr("class", "panel-body");
+    d3.select("#gauge").append("div").attr("class", "panel");
+    d3.select("#gauge").attr("class", "panel-body");
 
-//   // d3.selectAll(".col-md-5").append("div").attr("class", "panel panel-primary");
-//   d3.select("#bar").attr("class", "panel-body");
-//   d3.select("#gauge").attr("class", "panel-body");
+    let sampleData = data.samples;
+    let otuIds = [];
+    let sampleValues = [];
+    let otuLabels = [];
 
-//   let sampleData = data.samples;
-//   let otuIds = [];
-//   let sampleValues = [];
+    for (let i = 0; i < sampleData.length; i++) {
 
-//   for (let i = 0; i < sampleData.length; i++) {
+      let selectedSample = sampleData[i];
+      if (selectedSample.id == selectedID ) {
+        otuIds = selectedSample.otu_ids
+        sampleValues = selectedSample.sample_values
+        otuLabels = selectedSample.otu_labels
 
-//     let selectedSample = sampleData[i];
-//     if (selectedSample.id == selectedID ) {
-//       otuIds.push(selectedSample.otu_ids)
-//       sampleValues.push(selectedSample.sample_values)
-//       console.log(otuIds)
-//       console.log(sampleValues)};
-// }})
+        var xnum = sampleValues.slice(0,10).reverse();
+        // let y = otuIds.slice(0, 10).reverse();
+        //         console.log(xnum);
+        // console.log(sampleValues);
+        // console.log(otuIds)
 
-//   let trace1 = {
-//     x: otuIds,
-//     y: sampleValues
-//   };
-  
-//   let chartData = [trace1];
-  
-//   let layout = {
-//     title: `Top 10 OTUs for ${sampleData.id}`,
+
+      let trace1 = [{
+          x: sampleValues.slice(0,10),
+          y: otuIds.slice(0,10),
+          name: "OTU",
+          type: "bar",
+          orientation: "h"
+      }];
+     
+        
+      let layout1 = {
+        title: `Top 10 OTUs for ${selectedID}`,
+        height: 500,
+        width: 500
+        };
+            
+      Plotly.newPlot("bar", trace1, layout1);
+
+
+
+        let trace2 = [{
+          y: sampleValues,
+          x: otuIds,
+          // z: otuLabels,
+          type: 'scatter',
+          mode: 'markers',
+          marker: {size: sampleValues, 
+            color: otuLabels 
+            // colorscale: 'Electric'
+          }
+        }];
+         
+        let layout2 = {
+              showlegend: false,
+              height: 500,
+              width: 500
+        };
     
-//   };
-  
-// let barPlot = Plotly.newPlot("plot", chartData, layout);
+          
+        Plotly.newPlot("bubble", trace2, layout2);
+        console.log({otuIds,name:"otuIds"});
+        console.log({sampleValues, name:"sampleValues"});   
 
-//  d3.select("#bar").append(barPlot);
+
+
+        let trace3 =  [
+          {
+            domain: { x: [0, 1], y: [0, 1] },
+            value: 5,
+            // delta: { reference: 9, increasing: { color: "green" } },
+            title: { text: "Belly Button Washing Frequency" },
+            type: "indicator",
+            mode: "gauge+delta",
+            gauge: {
+              axis: { range: [null, 9] },
+              steps: [
+                { range: [0,1], color: "cyan" },
+                { range: [1,2], color: "blue" },
+                { range: [2,3], color: "red" },
+                { range: [3,4], color: "royalblue" },
+                { range: [4,5], color: "red" },
+                { range: [6,7], color: "royalblue" },
+                { range: [7,8], color: "red" },
+                { range: [8,9], color: "royalblue" }]
+             }
+            }
+          ];
+        
+        var layout = { 
+          width: 400, 
+          height: 400, 
+          margin: { t: 2, b: 2, l:2, r:2
+          } 
+        };
+
+        Plotly.newPlot('gauge', trace3, layout);
+      }
+    };
+   })
+  }
 
 
 init();
